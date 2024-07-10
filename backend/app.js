@@ -1,10 +1,11 @@
 
 http = require('node:http');
-var express = require('express');
+const express =  require("express")
+const router = express.Router()
 var app = express();
 
 app.get('/', function (req, res) {
-    res.send("dfdfdfdf");
+    res.send("welcome");
 })
 server = http.createServer(app);
 server.listen(5001);
@@ -18,8 +19,10 @@ mongoose.connect(url).then(()=>{
     console.log(err)
 })
 
+const citiesRouter = require("./router/cities.router")
 
-
-
+app.use(express.json())
+app.use(express.urlencoded({extended: true}))
+app.use("/", citiesRouter)
 
 console.log('Server running at http://127.0.0.1:5001/');
