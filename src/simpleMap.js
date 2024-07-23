@@ -1,24 +1,43 @@
 import React from "react";
-import { MapContainer, TileLayer, Polygon, GeoJSON, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import L, { divIcon } from "leaflet";
-import "leaflet-routing-machine";
-import Item from "./item";
-import wilayas from "./wilaya.json";
+import sample from './sample.json';
 import ecomp from "./ecomp.json";
 
-const colors = [
-  '#ff0000', '#0000ff', '#00ff00', '#ffff00', '#ff00ff', '#00ffff',
-  '#800000', '#008000', '#000080', '#808000', '#800080', '#008080',
-  '#ff8000', '#80ff00', '#0080ff', '#ff0080', '#8000ff', '#80ff80',
-  '#ff8080', '#8080ff', '#00ff80', '#80ffff', '#ffff80', '#ff80ff',
-  '#800080', '#008080', '#808080', '#c0c0c0', '#ff4500', '#2e8b57',
-  '#8a2be2', '#5f9ea0', '#d2691e', '#ff7f50', '#6495ed', '#ff1493',
-  '#228b22', '#ffd700', '#d3d3d3', '#4b0082', '#ff6347', '#7fffd4',
-  '#006400', '#ffb6c1', '#8b0000', '#8b4513', '#b22222', '#32cd32',
-  '#8b008b', '#00ced1', '#da70d6', '#ff69b4', '#87ceeb', '#dc143c',
-  '#00ff7f', '#adff2f',
-];
+function parseCityCode(Feature) {
+  Feature.features.forEach(feature => {
+    feature.properties.city_code = parseInt(feature.properties.city_code, 10);
+  });
+  return Feature;
+}
+
+const newEcomp = parseCityCode(ecomp);
+
+function compare() {
+  const states = newEcomp.features;
+  for (let index = 0; index < states.length; index++) {
+    sample.forEach(element => {
+      if (element.code === states[index].properties.city_code) {
+        if (element.state === "danger") {
+          states[index].properties.color = 'red';
+        } else if (element.state === "warning") {
+          states[index].properties.color = 'yellow';
+        } else if (element.state === "medium") {
+          states[index].properties.color = 'blue';
+        } else if (element.state === "safe") {
+          states[index].properties.color = 'green';
+        }
+      }
+    });
+  }
+}
+compare();
+
+const getColor = (feature) => {
+  return {
+    color: feature.properties.color
+  };
+};
 
 const SimpleMap = () => {
   return (
@@ -27,17 +46,7 @@ const SimpleMap = () => {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {wilayas.map((wilaya, index) => (
-        <Polygon
-          key={wilaya.code}
-         
-          positions={wilaya.border}
-          color={colors[index % colors.length]}
-          fillColor={colors[index % colors.length]}
-          fillOpacity={0.5}
-        />
-      ))}
-      
+      <GeoJSON data={newEcomp} style={getColor} />
     </MapContainer>
   );
 };
